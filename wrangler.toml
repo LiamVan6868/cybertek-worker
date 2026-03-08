@@ -1,3 +1,7 @@
 name = "cybertek-worker"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "CHAT_SESSIONS"
+id = "4666aa9cc5174a9385552ef398ffc0cf"
