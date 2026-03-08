@@ -88,6 +88,39 @@ export default {
             return jsonRes({ ok: true });
         }
 
+        // ── POST /order — Đơn hàng mới ───────────────────────────────────────────
+        if (url.pathname === '/order' && method === 'POST') {
+            let data;
+            try { data = await request.json(); } catch { return errRes('Invalid JSON'); }
+
+            const { name, phone, email, address, city, items, total, deposit, payment, note } = data;
+
+            let itemsText = '';
+            if (Array.isArray(items)) {
+                itemsText = items.map(i => `• ${esc(i.name)} x${i.qty}: <code>${esc(i.price)}</code>`).join('\n');
+            }
+
+            const text =
+                `🛒 <b>ĐƠN HÀNG MỚI — CYBERTEK</b>\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `👤 <b>Khách hàng:</b> ${esc(name)}\n` +
+                `📱 <b>SĐT:</b> <code>${esc(phone)}</code>\n` +
+                `📧 <b>Email:</b> ${esc(email || 'Không có')}\n` +
+                `📍 <b>Địa chỉ:</b> ${esc(address)}, ${esc(city)}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `📦 <b>Sản phẩm:</b>\n${itemsText}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `💰 <b>Tổng cộng:</b> <code>${esc(total)}</code>\n` +
+                `💳 <b>Cọc tối thiểu:</b> <code>${esc(deposit)}</code>\n` +
+                `🔑 <b>Thanh toán:</b> ${esc(payment === 'bank' ? 'Chuyển khoản (Cọc 50%)' : 'Thanh toán toàn bộ')}\n` +
+                `📝 <b>Ghi chú:</b> ${esc(note || 'Không có')}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `⏰ ${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}`;
+
+            await tgSend(text);
+            return jsonRes({ ok: true, message: 'Đơn hàng đã được ghi nhận!' });
+        }
+
         // ── GET /poll — Polling nhận reply ────────────────────────────────────────
         if (url.pathname === '/poll' && method === 'GET') {
             const sessionId = url.searchParams.get('session');
