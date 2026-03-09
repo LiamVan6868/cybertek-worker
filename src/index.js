@@ -78,17 +78,20 @@ export default {
         // ── GET /poll
         if (url.pathname === '/poll' && method === 'GET') {
             const sid = url.searchParams.get('session');
-            if (!sid) return jsonRes({ ok: true, replies: [] });
+            if (!sid) return jsonRes({ ok: true, messages: [] });
 
             const session = await getSession(sid);
-            if (!session) return jsonRes({ ok: true, replies: [] });
+            if (!session) return jsonRes({ ok: true, messages: [] });
 
-            const pending = session.messages.filter(m => m.role === 'owner' && !m.delivered);
-            pending.forEach(m => { m.delivered = true; });
+            // Trả về toàn bộ lịch sử để khách hàng không bị mất chat khi refresh
+            return jsonRes({ ok: true, messages: session.messages.map(m => ({ role: m.role, text: m.text, time: m.time })) });
+        }
 
-            if (pending.length > 0) await saveSession(sid, session);
-
-            return jsonRes({ ok: true, replies: pending.map(m => ({ text: m.text, time: m.time })) });
+        // ── GET /debug_session
+        if (url.pathname === '/debug_session' && method === 'GET') {
+            const sid = url.searchParams.get('session');
+            const session = await getSession(sid);
+            return jsonRes({ ok: true, session });
         }
 
         // ── POST /telegram-webhook
